@@ -15,6 +15,7 @@
   - [HW02 — Bean Scope](#hw02--bean-scope)
   - [HW03 — Bean Lifecycle](#hw03--bean-lifecycle)
   - [HW04 — External Properties](#hw04--external-properties)
+  - [HW05 — AOP (Aspect-Oriented Programming)](#hw05--aop-aspect-oriented-programming)
 - [Зависимости Maven](#зависимости-maven)
 
 ---
@@ -27,11 +28,11 @@
 | **Система сборки** | Maven |
 | **Фреймворк** | Spring Framework 6.2.8 |
 | **Конфигурация** | Java-based (`@Configuration`, аннотации) |
-| **Количество заданий** | 4 (`hw01` — `hw04`) |
+| **Количество заданий** | 5 (`hw01` — `hw05`) |
 | **Тесты** | Отсутствуют |
 | **Remote-репозиторий** | [github.com/VikkMoor/spring-playground](https://github.com/VikkMoor/spring-playground) |
 
-Проект демонстрирует пошаговое освоение IoC-контейнера Spring: от базового внедрения зависимостей до работы с внешними свойствами конфигурации.
+Проект демонстрирует пошаговое освоение IoC-контейнера Spring: от базового внедрения зависимостей до работы с внешними свойствами конфигурации и аспектно-ориентированным программированием (AOP).
 
 ---
 
@@ -58,6 +59,7 @@ mvn compile
 | HW02 | `moor.hw02_beanscope.Main` |
 | HW03 | `moor.hw03_beanLifecycle.LifecyclePlaygroundApp` |
 | HW04 | `moor.hw04_property.App` |
+| HW05 | `moor.hw05_AOP.App` |
 
 Пример запуска из командной строки (после `mvn compile`):
 
@@ -79,7 +81,8 @@ SpringCore/
         │   ├── hw01_di/                 # ДЗ 1: Dependency Injection
         │   ├── hw02_beanscope/          # ДЗ 2: Области видимости бинов
         │   ├── hw03_beanLifecycle/      # ДЗ 3: Жизненный цикл бина
-        │   └── hw04_property/           # ДЗ 4: Внешние свойства
+        │   ├── hw04_property/           # ДЗ 4: Внешние свойства
+        │   └── hw05_AOP/                # ДЗ 5: AOP
         └── resources/
             └── application.properties   # Конфигурация для HW04
 ```
@@ -346,16 +349,77 @@ resources/
 
 ---
 
+### HW05 — AOP (Aspect-Oriented Programming)
+
+**Пакет:** `moor.hw05_AOP`
+
+#### Тема
+
+Аспектно-ориентированное программирование (AOP) в Spring: сквозная логика через аспекты, пользовательские аннотации и advice типа `@Around`.
+
+#### Цель работы
+
+*Вывод по коду:* освоить механизм Spring AOP — включение прокси-обработки, создание собственной аннотации-маркера и аспекта, который перехватывает вызовы методов и проверяет аргументы на `null` до выполнения бизнес-логики.
+
+#### Что реализовано
+
+- Пользовательская аннотация `@NotNullArgs` для пометки методов, аргументы которых не должны быть `null`.
+- Аспект `NotNullArgsAspect` с `@Around`-advice: обход аргументов и выброс `IllegalArgumentException` при обнаружении `null`.
+- `EmailService` — компонент с методом `send(String to, String text)`, помеченным `@NotNullArgs`.
+- Конфигурация с `@EnableAspectJAutoProxy` для активации AOP-прокси.
+- Демонстрация в `main`: успешный вызов с валидными аргументами и вызов с `null`, приводящий к исключению.
+
+#### Технологии и инструменты
+
+| Инструмент | Использование |
+|---|---|
+| Java 21 | Язык реализации |
+| Spring Context 6.2.8 | IoC-контейнер и AOP-интеграция |
+| Spring AOP 6.2.8 | Прокси и advice |
+| AspectJ Weaver 1.9.24 | Runtime-weaving для AspectJ-аннотаций |
+| Maven | Сборка проекта |
+
+#### Ключевые классы и компоненты
+
+| Класс | Роль |
+|---|---|
+| `AppConfig` | `@EnableAspectJAutoProxy`, `@ComponentScan` |
+| `NotNullArgs` | Пользовательская аннотация-маркер |
+| `NotNullArgsAspect` | Аспект с `@Around` для проверки аргументов |
+| `EmailService` | Бизнес-компонент с аннотированным методом |
+| `App` | Точка входа, демонстрация валидного и невалидного вызова |
+
+#### Изученные концепции Java/Spring
+
+- **AOP (Aspect-Oriented Programming)** — вынесение сквозной логики (валидация, логирование и т.п.) из бизнес-кода.
+- **`@EnableAspectJAutoProxy`** — включение создания AOP-прокси в Spring-контексте.
+- **`@Aspect` и `@Around`** — объявление аспекта и advice, оборачивающего вызов метода.
+- **`ProceedingJoinPoint`** — доступ к аргументам и возможность вызвать исходный метод через `proceed()`.
+- **Pointcut по аннотации:** `@Around("@annotation(...)")` — перехват только помеченных методов.
+- **Пользовательские аннотации** — `@Target`, `@Retention(RUNTIME)` для использования в runtime AOP.
+- **Cross-cutting concern** — проверка аргументов без изменения кода `EmailService`.
+
+#### Структура пакета
+
+```
+hw05_AOP/
+├── AppConfig.java
+├── App.java
+├── EmailService.java
+├── NotNullArgs.java
+└── NotNullArgsAspect.java
+```
+
+---
+
 ## Зависимости Maven
 
 | Зависимость | Версия | Статус использования |
 |---|---|---|
 | `spring-context` | 6.2.8 | Используется во всех заданиях |
 | `jakarta.annotation-api` | 2.1.1 | Используется в HW03 (`@PostConstruct`, `@PreDestroy`) |
-| `spring-aop` | 6.2.8 | Объявлена в `pom.xml`, **в коде не используется** |
-| `aspectjweaver` | 1.9.24 | Объявлена в `pom.xml`, **в коде не используется** |
-
-> Назначение зависимостей `spring-aop` и `aspectjweaver` по текущему коду определить нельзя — возможно, они добавлены для будущих заданий.
+| `spring-aop` | 6.2.8 | Используется в HW05 (Spring AOP, `@EnableAspectJAutoProxy`) |
+| `aspectjweaver` | 1.9.24 | Используется в HW05 (AspectJ-аннотации `@Aspect`, `@Around`) |
 
 ---
 

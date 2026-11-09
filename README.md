@@ -420,7 +420,3 @@ hw05_AOP/
 | `aspectjweaver` | 1.9.24 | Используется в HW05 (AspectJ-аннотации `@Aspect`, `@Around`) |
 
 ---
-
-## Автор
-
-Информация об авторе в репозитории явно не указана. Remote-репозиторий: [VikkMoor/spring-playground](https://github.com/VikkMoor/spring-playground).
